@@ -1,3 +1,6 @@
+>[!NOTE]
+> At the moment this repo runs a bevy instance this may not be what we want, it 
+> is just for testing that the system is able to run a wasm framework
 # Wasm Frontend
 
 This crate is for createing the frontend of our application
