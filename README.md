@@ -12,12 +12,18 @@ cargo install wasm-pack
 npm i -g yarn
 ```
 
-run on linux and mac
+To install yarn dependencies 
+```
+cd webywasm && yarn
+```
+
+
+## Run on linux and mac
 ```
 ./build-dev.sh
 ```
 
-do 
+## Run on windows 
 ```
 ./please-translate-build-dev.sh-to-powershell.bat
 ```
