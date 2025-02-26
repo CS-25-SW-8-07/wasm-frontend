@@ -15,6 +15,11 @@ cargo install wasm-pack
 npm i -g yarn
 ```
 
+Install wasm as rust target
+```
+rustup target add wasm32-unknown-unknown
+```
+
 To install yarn dependencies 
 ```
 cd webywasm && yarn
