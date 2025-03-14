@@ -1,3 +1,6 @@
+>[!NOTE]
+> At the moment this repo runs a bevy instance this may not be what we want, it 
+> is just for testing that the system is able to run a wasm framework
 # Wasm Frontend
 
 This crate is for createing the frontend of our application
@@ -12,12 +15,23 @@ cargo install wasm-pack
 npm i -g yarn
 ```
 
-run on linux and mac
+Install wasm as rust target
+```
+rustup target add wasm32-unknown-unknown
+```
+
+To install yarn dependencies 
+```
+cd webywasm && yarn
+```
+
+
+## Run on linux and mac
 ```
 ./build-dev.sh
 ```
 
-do 
+## Run on windows 
 ```
 ./please-translate-build-dev.sh-to-powershell.bat
 ```
