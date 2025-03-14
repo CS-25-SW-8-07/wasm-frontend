@@ -6,5 +6,11 @@ export default defineConfig({
   plugins: [
     wasm(),
     topLevelAwait()
-  ]
+  ],
+  server: {
+    allowedHosts: [
+      "kamyatux.taild664b0.ts.net"
+    ]
+
+  }
 });

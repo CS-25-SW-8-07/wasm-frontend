@@ -1,88 +1,72 @@
-//! Shows how to render simple primitive shapes with a single color.
-//!
-//! You can toggle wireframes with the space bar except on wasm. Wasm does not support
-//! `POLYGON_MODE_LINE` on the gpu.
+use eframe::{
+    egui::{self, Color32, Pos2, Sense, Shape, Stroke, Vec2},
+    epaint::{CircleShape, PathShape, PathStroke},
+};
+use geo_types::{Coord, coord};
+use map::map;
+use state::StateHandle;
 use wasm_bindgen::prelude::*;
 
-use bevy::prelude::*;
-#[cfg(not(target_arch = "wasm32"))]
-use bevy::sprite::{Wireframe2dConfig, Wireframe2dPlugin};
+pub mod backend;
+pub mod map;
+pub mod state;
 
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
-pub fn run() {
-    let mut app = App::new();
-    app.add_plugins((
-        DefaultPlugins,
-        #[cfg(not(target_arch = "wasm32"))]
-        Wireframe2dPlugin,
-    ))
-    .add_systems(Startup, setup);
-    #[cfg(not(target_arch = "wasm32"))]
-    app.add_systems(Update, toggle_wireframe);
-    app.run();
+struct WebHandle {
+    runner: eframe::WebRunner,
+    state: state::StateHandle,
 }
 
-const X_EXTENT: f32 = 900.;
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+impl WebHandle {
+    #[wasm_bindgen(constructor)]
+    pub fn new(state: state::StateHandle) -> Self {
+        eframe::WebLogger::init(log::LevelFilter::Debug).ok();
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    commands.spawn(Camera2d);
-
-    let shapes = [
-        meshes.add(Circle::new(50.0)),
-        meshes.add(CircularSector::new(50.0, 1.0)),
-        meshes.add(CircularSegment::new(50.0, 1.25)),
-        meshes.add(Ellipse::new(25.0, 50.0)),
-        meshes.add(Annulus::new(25.0, 50.0)),
-        meshes.add(Capsule2d::new(25.0, 50.0)),
-        meshes.add(Rhombus::new(75.0, 100.0)),
-        meshes.add(Rectangle::new(50.0, 100.0)),
-        meshes.add(RegularPolygon::new(50.0, 6)),
-        meshes.add(Triangle2d::new(
-            Vec2::Y * 50.0,
-            Vec2::new(-50.0, -50.0),
-            Vec2::new(50.0, -50.0),
-        )),
-    ];
-    let num_shapes = shapes.len();
-
-    for (i, shape) in shapes.into_iter().enumerate() {
-        // Distribute colors evenly across the rainbow.
-        let color = Color::hsl(360. * i as f32 / num_shapes as f32, 0.95, 0.7);
-
-        commands.spawn((
-            Mesh2d(shape),
-            MeshMaterial2d(materials.add(color)),
-            Transform::from_xyz(
-                // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
-                -X_EXTENT / 2. + i as f32 / (num_shapes - 1) as f32 * X_EXTENT,
-                0.0,
-                0.0,
-            ),
-        ));
+        Self {
+            runner: eframe::WebRunner::new(),
+            state,
+        }
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    commands.spawn((
-        Text::new("Press space to toggle wireframes"),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(12.0),
-            left: Val::Px(12.0),
-            ..default()
-        },
-    ));
+    #[wasm_bindgen]
+    pub async fn start(
+        &self,
+        canvas: web_sys::HtmlCanvasElement,
+    ) -> Result<(), wasm_bindgen::JsValue> {
+        let state = self.state.clone();
+        self.runner
+            .start(
+                canvas,
+                eframe::WebOptions::default(),
+                Box::new(move |cc| Ok(Box::new(App::new(cc, state)))),
+            )
+            .await
+    }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-fn toggle_wireframe(
-    mut wireframe_config: ResMut<Wireframe2dConfig>,
-    keyboard: Res<ButtonInput<KeyCode>>,
-) {
-    if keyboard.just_pressed(KeyCode::Space) {
-        wireframe_config.global = !wireframe_config.global;
+#[allow(dead_code)]
+#[derive(Clone)]
+struct App {
+    state: state::StateHandle,
+}
+
+impl App {
+    #[allow(dead_code)]
+    fn new(ctx: &eframe::CreationContext<'_>, state: StateHandle) -> Self {
+        let mut context = state.context.lock().unwrap();
+        *context = ctx.egui_ctx.clone();
+        drop(context);
+        Self { state }
+    }
+}
+
+impl eframe::App for App {
+    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            map(ui, self.state.clone());
+        });
     }
 }

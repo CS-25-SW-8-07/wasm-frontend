@@ -1,26 +1,25 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
-import { run } from 'rustywasm';
+import { WebHandle, StateHandle } from "rustywasm"
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+// const sleep = async (time: number) => await new Promise(r => setTimeout(r, time));
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
-run()
+async function pullLocation(stateHandle: StateHandle) {
+  navigator.geolocation.watchPosition(pos => stateHandle.add_point(pos.coords.longitude, pos.coords.latitude));
+}
+
+async function main() {
+  const app = document.getElementById("app");
+  const stateHandle = new StateHandle();
+
+  const wh = new WebHandle(stateHandle.clone());
+
+  if (app instanceof HTMLCanvasElement) {
+    wh.start(app).catch(console.error);
+    //backend.be.start().catch(console.error);
+    pullLocation(stateHandle.clone()).catch(console.error);
+  } else {
+    console.error("App is not a canvas");
+  }
+}
+
+main();
+
