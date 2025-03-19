@@ -54,6 +54,7 @@ pub struct State {
     pub user_location: Mutex<Vec<Coord<f64>>>,
     pub location_timestamp: Mutex<Vec<web_time::SystemTime>>,
     pub roads: Mutex<Roads>,
+    pub road_index: Mutex<rusty_roads::RoadIndex>,
     pub context: Mutex<Context>,
     pub transform: Mutex<Transform>,
 }

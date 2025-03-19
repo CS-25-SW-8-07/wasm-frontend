@@ -8,14 +8,14 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-comms = { git = "https://github.com/CS-25-SW-8-07/geo-gearloes", branch = "fix-dependencies", version = "0.1.0" }
+comms = { git = "https://github.com/CS-25-SW-8-07/geo-gearloes",  version = "0.1.0" }
 eframe = { version = "0.31.1", features = ["glow", "wgpu"] }
 geo-traits = "0.2.0"
 geo-types = "0.7.15"
 glam = "0.30.0"
 js-sys = "0.3.77"
 log = "0.4.26"
-rusty-roads = { git = "https://github.com/CS-25-SW-8-07/geo-gearloes", branch = "fix-dependencies", version = "0.1.0" }
+rusty-roads = { git = "https://github.com/CS-25-SW-8-07/geo-gearloes",  version = "0.1.0" }
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
 web-sys = { version = "0.3.77", features = ["console", "Window", "Geolocation"] }

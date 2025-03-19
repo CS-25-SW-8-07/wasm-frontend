@@ -1,8 +1,8 @@
 use eframe::{
-    egui::{Color32, Pos2, Sense, Shape, Stroke, Ui, Vec2},
+    egui::{Color32, Painter, Pos2, Sense, Shape, Stroke, Ui, Vec2},
     epaint::{CircleShape, PathShape, PathStroke},
 };
-use geo_types::{Coord, coord};
+use geo_types::{Coord, LineString, coord};
 
 use crate::state::StateHandle;
 
@@ -58,4 +58,29 @@ pub fn map(ui: &mut Ui, state: StateHandle) {
             stroke: PathStroke::new(3.0, Color32::BLUE),
         }));
     }
+
+    let roads = state.road_index.lock().unwrap();
+    for road in roads {
+        draw_linestring(
+            &painter,
+            &road,
+            &transform,
+            PathStroke::new(1.0, Color32::GRAY),
+        );
+    }
+}
+
+fn draw_linestring<F: Fn(&Coord) -> Pos2>(
+    painter: &Painter,
+    ls: &LineString<f64>,
+    transform: &F,
+    stroke: PathStroke,
+) {
+    let points = ls.coords().map(transform).collect();
+    painter.add(Shape::Path(PathShape {
+        points,
+        closed: false,
+        fill: Color32::TRANSPARENT,
+        stroke,
+    }));
 }
