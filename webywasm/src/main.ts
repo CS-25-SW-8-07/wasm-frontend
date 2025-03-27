@@ -2,8 +2,6 @@ import { WebHandle, StateHandle } from "rustywasm"
 
 // const sleep = async (time: number) => await new Promise(r => setTimeout(r, time));
 
-async function fetchRoads() { }
-
 function pullLocation(stateHandle: StateHandle) {
   navigator.geolocation.watchPosition(pos => stateHandle.add_point(pos.coords.longitude, pos.coords.latitude));
 }

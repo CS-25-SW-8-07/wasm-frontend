@@ -3,12 +3,14 @@ use eframe::{
     epaint::{CircleShape, PathShape, PathStroke},
 };
 use geo_types::{Coord, coord};
-use map::map;
+use map::{Cartograph, CompasRose};
+use settings::Settings;
 use state::StateHandle;
 use wasm_bindgen::prelude::*;
 
 pub mod backend;
 pub mod map;
+pub mod settings;
 pub mod state;
 
 #[cfg(target_arch = "wasm32")]
@@ -56,6 +58,7 @@ struct App {
 impl App {
     #[allow(dead_code)]
     fn new(ctx: &eframe::CreationContext<'_>, state: StateHandle) -> Self {
+        log::debug!("Starting APP");
         let mut context = state.context.lock().unwrap();
         *context = ctx.egui_ctx.clone();
         drop(context);
@@ -66,7 +69,49 @@ impl App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            map(ui, self.state.clone());
+            ui.vertical(|ui| {
+                ui.horizontal_top(|ui| {
+                    ui.settings_menu(self.state.clone());
+                    ui.shrink_height_to_current();
+                    ui.add_space(ui.available_width() - ui.available_height());
+                    ui.compas_rose(self.state.clone());
+                });
+                ui.cartograph(self.state.clone());
+            });
         });
     }
 }
+
+#[allow(unused)]
+pub(crate) trait PrintErr {
+    fn print_err(self) -> Self;
+}
+
+impl<T, E: std::fmt::Debug> PrintErr for Result<T, E> {
+    #[inline]
+    fn print_err(self) -> Self {
+        if let Err(e) = &self {
+            log::error!("{e:?}");
+        }
+
+        self
+    }
+}
+
+#[allow(unused)]
+pub(crate) trait PrintDebug: std::fmt::Debug + Sized {
+    #[cfg(debug_assertions)]
+    #[inline]
+    fn print_debug(self, header: &'static str) -> Self {
+        log::debug!("{header}: {self:?}");
+        self
+    }
+
+    #[cfg(not(debug_assertions))]
+    #[inline]
+    fn print_debug(self, _: &'static str) -> Self {
+        self
+    }
+}
+
+impl<T: std::fmt::Debug + Sized> PrintDebug for T {}

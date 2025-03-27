@@ -1,53 +1,17 @@
+pub mod transform;
+pub use transform::*;
+
 use std::{
     ops::Deref,
-    sync::{Arc, Mutex, MutexGuard, PoisonError},
+    sync::{Arc, Mutex},
 };
 
 use eframe::egui::Context;
+use geo_types::{Coord, LineString, coord};
 use rusty_roads::Roads;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
-use geo_types::{Coord, coord};
-
-#[derive(Debug)]
-pub struct Transform {
-    pub rotate_mat: glam::Mat2,
-    pub scale_mat: glam::Mat2,
-    pub translate: glam::Vec2,
-}
-
-impl Transform {
-    pub fn scale_rotate(&self) -> glam::Mat2 {
-        self.scale_mat * self.rotate_mat
-    }
-
-    pub fn rotate(&mut self, rad: f32) {
-        let rotate = glam::Mat2::from_cols(
-            glam::Vec2::new(rad.cos(), rad.sin()),
-            glam::Vec2::new(-rad.sin(), rad.cos()),
-        );
-
-        self.rotate_mat *= rotate;
-    }
-
-    pub fn scale(&mut self, factor: f32) {
-        self.scale_mat *= factor;
-    }
-
-    pub fn translate(&mut self, vec: eframe::egui::Vec2) {
-        self.translate += glam::Vec2::new(vec.x, vec.y);
-    }
-}
-
-impl Default for Transform {
-    fn default() -> Self {
-        Self {
-            rotate_mat: glam::Mat2::IDENTITY,
-            scale_mat: glam::Mat2::IDENTITY,
-            translate: glam::Vec2::ZERO,
-        }
-    }
-}
+use crate::PrintDebug;
 
 #[derive(Debug, Default)]
 pub struct State {
@@ -61,7 +25,18 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        Self::default()
+        let slf = Self::default();
+        let road = LineString::from_iter(vec![
+            coord! {x:9.990876, y:57.011908},
+            coord! {x:9.991820, y:57.012704},
+            coord! {x:9.991776, y:57.011749},
+        ]);
+        slf.road_index
+            .lock()
+            .print_debug("Road Index")
+            .unwrap()
+            .insert(0, road);
+        slf
     }
 }
 
@@ -73,7 +48,7 @@ pub struct StateHandle(Arc<State>);
 impl StateHandle {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self::default()
+        Self(Arc::new(State::new()))
     }
 
     #[wasm_bindgen]
